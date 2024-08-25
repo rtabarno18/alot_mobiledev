@@ -1,4 +1,3 @@
-//import 'package:alot_mobiledevelopment/screens/auth/signin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
@@ -78,13 +77,18 @@ class SignUpScreen extends StatelessWidget {
                 User? user = await _authController.signUpWithEmail(
                   _emailController.text,
                   _passwordController.text,
+                  _nameController.text, // Pass the name here
                   context,
                 );
                 if (user != null) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CompleteProfileScreen(user: user),
+                      builder: (context) => CompleteProfileScreen(
+                        user: user,
+                        initialName:
+                            _nameController.text, // Pass the initial name
+                      ),
                     ),
                   );
                 }

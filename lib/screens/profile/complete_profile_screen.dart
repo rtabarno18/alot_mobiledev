@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../location/location_access_screen.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final User user;
+  final String initialName;
 
-  const CompleteProfileScreen({super.key, required this.user});
+  const CompleteProfileScreen({
+    super.key,
+    required this.user,
+    required this.initialName,
+  });
 
   @override
   State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
@@ -18,7 +24,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   XFile? _image;
-  String? _selectedRole; // Add this line
+  String? _selectedRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.initialName;
+  }
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -26,6 +38,21 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       setState(() {
         _image = image;
       });
+    }
+  }
+
+  Future<void> _updateProfile() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.user.uid)
+          .update({
+        'name': _nameController.text,
+        'phone': _phoneController.text,
+        'role': _selectedRole,
+      });
+    } catch (e) {
+      print('Error updating profile: $e');
     }
   }
 
@@ -94,18 +121,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
             const SizedBox(height: 40),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_selectedRole == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please select a role')),
                   );
                   return;
                 }
-                // Save profile data to Firestore
+                await _updateProfile();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LocationAccessScreen(),
+                    builder: (context) =>
+                        LocationAccessScreen(role: _selectedRole!),
                   ),
                 );
               },

@@ -1,6 +1,5 @@
 import 'package:alot_mobiledevelopment/screens/home/barber_home.dart';
 import 'package:alot_mobiledevelopment/screens/home/client_home.dart';
-import 'package:alot_mobiledevelopment/screens/location/enter_location_screen.dart';
 import 'package:alot_mobiledevelopment/screens/location/location_access_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,11 +14,18 @@ class Routes {
       '/signup': (context) => SignUpScreen(),
       '/signin': (context) => SignInScreen(),
       '/completeProfile': (context) {
-        final user = ModalRoute.of(context)!.settings.arguments as User;
-        return CompleteProfileScreen(user: user);
+        final args =
+            ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+        final user = args['user'] as User;
+        final initialName = args['initialName'] as String;
+        return CompleteProfileScreen(user: user, initialName: initialName);
       },
-      '/locationAccess': (context) => const LocationAccessScreen(),
-      '/enterLocation': (context) => const EnterLocationScreen(),
+      '/locationAccess': (context) {
+        final args =
+            ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+        final role = args['role'] as String;
+        return LocationAccessScreen(role: role);
+      },
       '/barberHome': (context) => const BarberHomeScreen(),
       '/clientHome': (context) => const ClientHomeScreen(),
     };

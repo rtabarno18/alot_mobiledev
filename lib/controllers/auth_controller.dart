@@ -37,7 +37,7 @@ class AuthController {
 
   // Sign Up Method with Improved Error Handling
   Future<User?> signUpWithEmail(
-      String email, String password, BuildContext context) async {
+      String email, String password, String name, BuildContext context) async {
     if (!validateEmail(email)) {
       _showErrorSnackBar(context, 'Invalid email format.');
       return null;
@@ -55,6 +55,14 @@ class AuthController {
         email: email,
         password: password,
       );
+
+      // Store the user's name in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'name': name,
+        'email': email,
+        // Add other fields as needed
+      });
+
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
