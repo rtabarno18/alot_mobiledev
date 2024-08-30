@@ -6,6 +6,8 @@ class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  bool isLoading = false;
+
   // Sign In Method
   Future<User?> signInWithEmail(String email, String password) async {
     try {
@@ -13,21 +15,38 @@ class AuthController {
         email: email,
         password: password,
       );
-      DocumentSnapshot userDoc = await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
-      return userDoc['role'];
+
+      return userCredential.user;
     } catch (e) {
       print('Sign in error: $e');
       return null;
     }
   }
 
+  Future<void> resetPasswordViaEmail(BuildContext context, String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'invalid-email':
+          _showErrorSnackBar(context, 'The email address is not valid.');
+          break;
+        case 'user-not-found':
+          _showErrorSnackBar(context, 'User not found for this email.');
+          break;
+
+        default:
+          return _showErrorSnackBar(context, 'Failed to send reset password email. Please try again.');
+      }
+    } catch (e) {
+      return _showErrorSnackBar(context, 'Failed to send reset password email. Please try again.');
+    }
+  }
+
   Future<String> getUserRole(String uid) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+
       return userDoc['role'];
     } catch (e) {
       print('Error getting user role: $e');
@@ -36,22 +55,19 @@ class AuthController {
   }
 
   // Sign Up Method with Improved Error Handling
-  Future<User?> signUpWithEmail(
-      String email, String password, String name, BuildContext context) async {
+  Future<User?> signUpWithEmail(String email, String password, String name, BuildContext context) async {
     if (!validateEmail(email)) {
       _showErrorSnackBar(context, 'Invalid email format.');
       return null;
     }
 
     if (password.length < 6) {
-      _showErrorSnackBar(
-          context, 'Password must be at least 6 characters long.');
+      _showErrorSnackBar(context, 'Password must be at least 6 characters long.');
       return null;
     }
 
     try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -96,8 +112,7 @@ class AuthController {
   // Helper method to validate email format
   bool validateEmail(String email) {
     // A basic regex for email validation
-    final RegExp emailRegex =
-        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$');
+    final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$');
     return emailRegex.hasMatch(email);
   }
 

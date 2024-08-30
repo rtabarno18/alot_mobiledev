@@ -1,17 +1,29 @@
+import 'package:alot_mobiledevelopment/config/routes.gr.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
-import '../profile/complete_profile_screen.dart';
 
-class SignUpScreen extends StatelessWidget {
+@RoutePage()
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
+
   final TextEditingController _emailController = TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
   final AuthController _authController = AuthController();
 
-  SignUpScreen({super.key});
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +36,7 @@ class SignUpScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
           children: <Widget>[
             TextField(
               controller: _nameController,
@@ -67,13 +78,15 @@ class SignUpScreen extends StatelessWidget {
                 backgroundColor: Colors.purple,
               ),
               onPressed: () async {
-                if (_passwordController.text !=
-                    _confirmPasswordController.text) {
+                if (_passwordController.text != _confirmPasswordController.text) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Passwords do not match')),
                   );
                   return;
                 }
+
+                setState(() => isLoading = true);
+
                 User? user = await _authController.signUpWithEmail(
                   _emailController.text,
                   _passwordController.text,
@@ -81,19 +94,24 @@ class SignUpScreen extends StatelessWidget {
                   context,
                 );
                 if (user != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CompleteProfileScreen(
-                        user: user,
-                        initialName:
-                            _nameController.text, // Pass the initial name
-                      ),
+                  setState(() => isLoading = false);
+                  context.router.replace(
+                    CompleteProfileRoute(
+                      user: user,
+                      initialName: _nameController.text,
                     ),
                   );
+                } else {
+                  setState(() => isLoading = false);
                 }
               },
-              child: const Text('Sign Up'),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : const Text('Sign Up'),
             ),
           ],
         ),
