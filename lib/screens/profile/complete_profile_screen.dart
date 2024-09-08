@@ -1,10 +1,12 @@
+import 'package:alot_mobiledevelopment/config/routes.gr.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../location/location_access_screen.dart';
 
+@RoutePage()
 class CompleteProfileScreen extends StatefulWidget {
   final User user;
   final String initialName;
@@ -43,10 +45,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   Future<void> _updateProfile() async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.user.uid)
-          .update({
+      await FirebaseFirestore.instance.collection('users').doc(widget.user.uid).update({
         'name': _nameController.text,
         'phone': _phoneController.text,
         'role': _selectedRole,
@@ -74,12 +73,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               child: CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.grey.shade300,
-                backgroundImage:
-                    _image != null ? FileImage(File(_image!.path)) : null,
-                child: _image == null
-                    ? const Icon(Icons.camera_alt,
-                        color: Colors.white, size: 30)
-                    : null,
+                backgroundImage: _image != null ? FileImage(File(_image!.path)) : null,
+                child: _image == null ? const Icon(Icons.camera_alt, color: Colors.white, size: 30) : null,
               ),
             ),
             const SizedBox(height: 20),
@@ -129,13 +124,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   return;
                 }
                 await _updateProfile();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        LocationAccessScreen(role: _selectedRole!),
-                  ),
-                );
+                context.router.push(LocationAccessRoute(role: _selectedRole!));
+
+                //? Vanilla navigation
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => LocationAccessScreen(role: _selectedRole!),
+                //   ),
+                // );
               },
               child: const Text('Complete Profile'),
             ),

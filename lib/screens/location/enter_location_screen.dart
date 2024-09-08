@@ -1,14 +1,15 @@
+import 'package:alot_mobiledevelopment/config/routes.gr.dart';
 import 'package:alot_mobiledevelopment/models/location_list_tile.dart';
 import 'package:alot_mobiledevelopment/models/place_autocomplete_response.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:alot_mobiledevelopment/screens/home/barber_home.dart';
-import 'package:alot_mobiledevelopment/controllers/map_controller.dart'
-    as map_ctrl;
+import 'package:alot_mobiledevelopment/controllers/map_controller.dart' as map_ctrl;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:alot_mobiledevelopment/utils/network_utiliti.dart';
 import 'package:alot_mobiledevelopment/utils/constants.dart';
 
+@RoutePage()
 class EnterLocationScreen extends StatefulWidget {
   const EnterLocationScreen({super.key});
 
@@ -48,14 +49,9 @@ class _EnterLocationScreenState extends State<EnterLocationScreen> {
     String? response = await NetworkUtiliti.fetchUrl(uri);
 
     if (response != null) {
-      PlaceAutocompleteResponse result =
-          PlaceAutocompleteResponse.parseAutocompleteResult(response);
+      PlaceAutocompleteResponse result = PlaceAutocompleteResponse.parseAutocompleteResult(response);
       setState(() {
-        placePredictions = result.predictions!
-            .map((p) => p.description)
-            .where((description) => description != null)
-            .cast<String>()
-            .toList();
+        placePredictions = result.predictions!.map((p) => p.description).where((description) => description != null).cast<String>().toList();
       });
     }
   }
@@ -134,13 +130,13 @@ class _EnterLocationScreenState extends State<EnterLocationScreen> {
             ElevatedButton(
               onPressed: () {
                 // Implement functionality to confirm location and proceed
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const BarberHomeScreen(), // Change based on role
-                  ),
-                );
+                context.router.push(const BarberHomeRoute());
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const BarberHomeScreen(), // Change based on role
+                //   ),
+                // );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purple,
